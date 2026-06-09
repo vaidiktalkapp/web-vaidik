@@ -1,0 +1,418 @@
+'use client';
+import { useTranslation } from '@/context/LanguageContext';
+
+import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import aiAstrologerService, { AiAstrologer } from '@/lib/aiAstrologerService';
+import {
+  Star, MessageSquare, ArrowLeft, Languages, Clock,
+  BookOpen, Target, Users, BadgeCheck, Shield, Heart,
+  Zap, Info, CheckCircle, Phone } from
+'lucide-react';
+import { motion } from 'framer-motion';
+import AiChatIntakeModal from '@/components/modals/AiChatIntakeModal';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'react-hot-toast';
+
+interface PageProps {
+  params: Promise<{id: string;}>;
+}
+
+const AiAstrologerProfilePage = ({ params }: PageProps) => {
+    const { t } = useTranslation();
+
+  const { id } = use(params);
+  const router = useRouter();
+  const [astrologer, setAstrologer] = useState<AiAstrologer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showIntakeModal, setShowIntakeModal] = useState(false);
+  const { isAuthenticated, openLoginModal, user } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const currentBalance = user?.wallet?.balance || 0;
+  const astrologerRate = Number(astrologer?.chatRate || 0);
+  const minRequiredBalance = 50;
+  const isInsufficient = isAuthenticated && astrologerRate > 0 && currentBalance < minRequiredBalance;
+
+  useEffect(() => {
+    const fetchAstrologer = async () => {
+      try {
+        const data = await aiAstrologerService.getAiAstrologer(id);
+        setAstrologer(data);
+      } catch (error) {
+        console.error('Failed to fetch astrologer details', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAstrologer();
+  }, [id]);
+
+  const getImageUrl = (url: string, name: string = 'AI') => {
+    if (url && url.trim() !== '') return url;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f0ebe3&color=7c6a4f&size=200&bold=true`;
+  };
+
+  const handleStartCall = async () => {
+    if (!isAuthenticated) {
+      toast('Please login to start a voice consultation', { icon: 'ℹ️' });
+      openLoginModal?.();
+      return;
+    }
+
+    if (isInsufficient) {
+      toast.error('Insufficient balance to start a call');
+      return;
+    }
+
+    try {
+      const toastId = toast.loading('Initiating secure voice line...');
+      const response = await aiAstrologerService.startAiVoiceCall(id, user?._id || '', astrologer?.languages?.[0] || 'English');
+      
+      if (response.success && response.sessionId) {
+        toast.success('Connecting...', { id: toastId });
+        router.push(`/call/${response.sessionId}?type=audio&name=${encodeURIComponent(astrologer?.name || 'AI')}&rate=${astrologer?.voiceRate || astrologer?.chatRate || 0}`);
+      } else {
+        toast.error(response.message || 'Failed to initiate call', { id: toastId });
+      }
+    } catch (err) {
+      console.error('Call initiation error:', err);
+      toast.error('Failed to connect to AI voice service');
+    }
+  };
+
+  const handleStartChat = () => {
+    if (!isAuthenticated) {
+      toast('Please login to start a consultation', { icon: 'ℹ️' });
+      openLoginModal?.();
+      return;
+    }
+    setShowIntakeModal(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+          className="w-8 h-8 border-2 border-gray-200 border-t-gray-700 rounded-full" />
+        
+            </div>);
+
+  }
+
+  if (!astrologer) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center p-6 bg-gray-50">
+                <p className="text-lg font-medium text-gray-800 mb-2">{t("_id_.astrologer_not_found")}</p>
+                <p className="text-sm text-gray-500 mb-6">{t("_id_.this_profile_may_have_been_rem")}</p>
+                <button
+          onClick={() => router.back()}
+          className="text-sm font-medium text-gray-700 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+{t("_id_.go_back")}
+
+        </button>
+            </div>);
+
+  }
+
+  const statItems = [
+  { label: 'Experience', value: astrologer.experienceYears || 5, unit: 'yrs', icon: Clock },
+  { label: 'Rating', value: astrologer.rating || 4.8, unit: '/5', icon: Star },
+  { label: 'Clients', value: `${(astrologer.totalChats || 1200).toLocaleString()}+`, unit: '', icon: Users },
+  {
+    label: 'Rate',
+    value: astrologer.chatRate && astrologer.chatRate > 0 ? `₹${astrologer.chatRate}` : 'Free',
+    unit: astrologer.chatRate && astrologer.chatRate > 0 ? '/min' : '',
+    icon: Zap
+  }];
+
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-6">
+            <div className="max-w-6xl mx-auto px-4">
+
+                {/* Back */}
+                <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
+          
+                    <ArrowLeft className="w-4 h-4" />
+{t("_id_.back")}
+        </button>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                    {/* ── LEFT COLUMN ── */}
+                    <div className="lg:col-span-2 flex flex-col gap-5">
+
+                        {/* Hero Card */}
+                        <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              
+                            <div className="p-6">
+                                <div className="flex flex-col sm:flex-row gap-6">
+
+                                    {/* Avatar */}
+                                    <div className="flex-shrink-0 flex flex-col items-center sm:items-start gap-3">
+                                        <div className="relative">
+                                            <img
+                        src={getImageUrl(astrologer.profileImage, astrologer.name)}
+                        alt={astrologer.name}
+                        className="w-28 h-28 rounded-xl object-cover border border-gray-200" />
+                      
+                                            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-green-600 text-white text-[10px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+{t("_id_.live")}
+                      </span>
+                                        </div>
+                                        {astrologer.specialization?.[0] &&
+                                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200">
+                                                    {astrologer.specialization[0]}
+                                                </span>
+                                        }
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h1 className="text-xl font-semibold text-gray-900 truncate">{astrologer.name}</h1>
+                                            <BadgeCheck className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                                        </div>
+
+                                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+                                            {astrologer.specialization?.[0] ?
+                      `${astrologer.specialization[0]} Expert` :
+                      'Astrology Expert'}
+                                        </p>
+
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 w-fit mb-5">
+                                            <Languages className="w-3.5 h-3.5 text-gray-400" />
+                                            {astrologer.languages?.length ?
+                      astrologer.languages.join(', ') :
+                      'English, Hindi'}
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                                            {statItems.map(({ label, value, unit, icon: Icon }) =>
+                      <div key={label} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                                    <div className="flex items-center gap-1 mb-1">
+                                                        <Icon className="w-3 h-3 text-gray-400" />
+                                                        <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">{label}</span>
+                                                    </div>
+                                                    <p className="text-base font-semibold text-gray-900">
+                                                        {value}
+                                                        {unit && <span className="text-xs font-normal text-gray-400 ml-0.5">{unit}</span>}
+                                                    </p>
+                                                </div>
+                      )}
+                                        </div>
+
+                                        {/* Low balance warning */}
+                                        {isInsufficient &&
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                                                <div className="flex items-start gap-2.5">
+                                                    <Shield className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-semibold text-red-700">{t("_id_.insufficient_balance")}</p>
+                                                        <p className="text-xs text-red-500 mt-0.5">
+{t("_id_.minimum")}{minRequiredBalance}{t("_id_.required_to_start_a_session")}
+                          </p>
+                                                        <button
+                            onClick={() => router.push('/wallet/recharge')}
+                            className="mt-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors">
+{t("_id_.recharge_wallet")}
+
+                          </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                    }
+
+                                        {/* CTA Section */}
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                          <button
+                                            onClick={handleStartChat}
+                                            disabled={isInsufficient}
+                                            className="flex-1 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-gray-900 border-2 border-gray-900 text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95">
+                                            <MessageSquare className="w-4 h-4" />
+                                            {t("_id_.start_consultation")}
+                                          </button>
+                                          
+                                          <button
+                                            onClick={handleStartCall}
+                                            disabled={isInsufficient}
+                                            className="flex-1 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-gray-900/20 active:scale-95">
+                                            <Phone className="w-4 h-4" />
+                                            {t("_id_.voice_call")}
+                                          </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* About */}
+                            <div className="border-t border-gray-100 px-6 py-5">
+                                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                                    <Info className="w-4 h-4 text-gray-400" />
+{t("_id_.about")}
+                </h2>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                    {astrologer.bio ||
+                   `${astrologer.name} is an experienced Vedic astrology practitioner who combines ancient wisdom with precise astronomical analysis. With a strong background in birth chart reading and planetary transit forecasting, they offer meaningful guidance on relationships, career decisions, and spiritual growth.`}
+                                </p>
+                            </div>
+
+                            {/* Expertise tags */}
+                            {astrologer.specialization && astrologer.specialization.length > 0 &&
+              <div className="border-t border-gray-100 px-6 py-5">
+                                    <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                                        <Star className="w-4 h-4 text-gray-400" />
+{t("_id_.areas_of_expertise")}
+                </h2>
+                                    <div className="flex flex-wrap gap-2">
+                                        {astrologer.specialization.map((spec) =>
+                  <span
+                    key={spec}
+                    className="text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full">
+                    
+                                                {spec}
+                                            </span>
+                  )}
+                                    </div>
+                                </div>
+              }
+                        </motion.div>
+
+                        {/* Detail Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+                            <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                                <div className="w-8 h-8 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center mb-4">
+                                    <BookOpen className="w-4 h-4 text-gray-500" />
+                                </div>
+                                <h3 className="text-sm font-semibold text-gray-900 mb-2">{t("_id_.training_background")}</h3>
+                                <p className="text-xs text-gray-500 leading-relaxed mb-4">
+{t("_id_.highly_experienced_in")}{astrologer.specialization?.join(', ') || 'Vedic Astrology'}{t("_id_._providing_spiritual_and_pract")}{astrologer.experienceYears || 5}{t("_id_.years_with_formal_training_in")}
+                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+                                        {astrologer.specialization?.[0] || 'Vedic Expert'}
+                                    </span>
+                                    <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+{t("_id_.classical_jyotish")}
+                  </span>
+                                </div>
+                            </div>
+
+                            <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                                <div className="w-8 h-8 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center mb-4">
+                                    <Target className="w-4 h-4 text-gray-500" />
+                                </div>
+                                <h3 className="text-sm font-semibold text-gray-900 mb-2">{t("_id_.consultation_focus")}</h3>
+                                <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                                    {astrologer.bio ?
+                  astrologer.bio.slice(0, 160) + '…' :
+                  'Focused on providing clarity through deep astrological analysis — covering life transitions, relationships, career decisions, and long-term Dasha period forecasting.'}
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">{t("_id_.life_path")}</span>
+                                    <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">{t("_id_.prosperity")}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── RIGHT SIDEBAR ── */}
+                    <div className="flex flex-col gap-5">
+
+                        {/* Profile summary */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-5 text-center">
+                            <img
+                src={getImageUrl(astrologer.profileImage, astrologer.name)}
+                alt={astrologer.name}
+                className="w-20 h-20 rounded-full object-cover border border-gray-200 mx-auto mb-3" />
+              
+                            <p className="text-sm font-semibold text-gray-900 mb-1">{astrologer.name}</p>
+                            <p className="text-xs text-gray-500 leading-relaxed mb-4">
+{t("_id_.guiding_seekers_through_cosmic")}
+              </p>
+                            <div className="flex flex-col gap-2 text-left">
+                                <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                                    <Heart className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600">{t("_id_.compassionate_guidance")}</span>
+                                </div>
+                                <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                                    <Shield className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600">
+                                        {astrologer.specialization?.join(' & ') || 'Vedic Expert'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                                    <CheckCircle className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    <span className="text-xs text-gray-600">{t("_id_.verified_practitioner")}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Consultation details */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                            <p className="text-sm font-semibold text-gray-900 mb-4">{t("_id_.consultation_details")}</p>
+                            <div className="flex flex-col gap-3">
+                                {[
+                { label: 'Session type', value: 'Chat' },
+                {
+                  label: 'Rate',
+                  value: astrologer.chatRate && astrologer.chatRate > 0 ?
+                  `₹${astrologer.chatRate} / min` :
+                  'Free'
+                },
+                { label: 'Min. balance', value: `₹${minRequiredBalance}` },
+                { label: 'Availability', value: 'Online now', highlight: true }].
+                map(({ label, value, highlight }) =>
+                <div key={label}>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-gray-400">{label}</span>
+                                            <span
+                       className={`text-xs font-medium ${highlight ? 'text-green-600' : 'text-gray-800'}`}>
+                       
+                                                {value}
+                                            </span>
+                                        </div>
+                                        <div className="mt-3 h-px bg-gray-100 last:hidden" />
+                                    </div>
+                )}
+                            </div>
+                        </div>
+
+                        {/* Mantra */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-5 text-center">
+                            <div className="w-9 h-9 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mx-auto mb-3 text-base">
+                                ॐ
+                            </div>
+                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-2">{t("_id_.daily_mantra")}</p>
+                            <p className="text-sm font-medium text-gray-900 font-mono mb-1">ॐ श्री महालक्ष्म्यै नमः</p>
+                            <p className="text-xs text-gray-400">{t("_id_.chant_for_abundance_and_wisdom")}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <AiChatIntakeModal
+        isOpen={showIntakeModal}
+        onClose={() => setShowIntakeModal(false)}
+        astrologer={astrologer} />
+      
+        </div>);
+
+};
+
+export default AiAstrologerProfilePage;

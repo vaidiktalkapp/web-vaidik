@@ -1,0 +1,189 @@
+'use client';
+import { useTranslation } from '@/context/LanguageContext';
+
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { History, Search, Calendar, MapPin, ChevronRight, Sparkles, Plus, Crown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { kundliStorage } from '@/lib/kundliStorage';
+
+export default function KundliHistoryPage() {
+    const { t } = useTranslation();
+
+  const router = useRouter();
+  const [history, setHistory] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    kundliStorage.getHistory().then((data) => setHistory(data));
+  }, []);
+
+  const filteredHistory = history.filter((item) => {
+    const name = item?.input?.name || '';
+    const place = item?.input?.place || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    place.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const handleSelect = (item: any) => {
+    kundliStorage.saveData(item);
+    router.push('/kundli');
+  };
+
+  return (
+    <div className="min-h-screen kh-wrap" style={{ backgroundColor: '#fdf6e3' }}>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
+                .kh-wrap * { font-family: 'Source Sans 3', sans-serif; }
+                .kh-wrap h1, .kh-wrap .serif { font-family: 'Playfair Display', Georgia, serif; }
+
+                .kh-search::placeholder { color: #9ca3af; }
+                .kh-search:focus {
+                    border-color: #b8962e !important;
+                    box-shadow: 0 0 0 3px rgba(184,150,46,0.15) !important;
+                    outline: none !important;
+                }
+
+                .kh-card:hover .kh-card-arrow { transform: translateX(3px); color: #b8962e; }
+                .kh-card:hover .kh-card-label { color: #b8962e; }
+                .kh-card:hover { border-color: #b8962e !important; }
+            ` }} />
+
+            <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 space-y-8">
+
+                {/* ── Header ── */}
+                <div className="pb-6 border-b border-[#d6c89a]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                        <div>
+                            <div className="flex items-center gap-2 text-[#b8962e] text-sm font-semibold mb-2">
+                                <Crown className="w-3.5 h-3.5" />
+                                <span className="serif">{t("history.kundli_generator")}</span>
+                            </div>
+                            <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight mb-1">
+{t("history.kundali_results")}
+              </h1>
+                            <p className="text-gray-500 text-sm">
+{t("history.view_and_manage_your_previousl")}
+              </p>
+                        </div>
+
+                        <button
+              onClick={() => router.push('/kundli')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all flex-shrink-0"
+              style={{ background: '#b8962e' }}>
+              
+                            <Plus className="w-4 h-4" />
+{t("history.new_kundali")}
+            </button>
+                    </div>
+                </div>
+
+                {/* ── Search ── */}
+                <div className="relative max-w-xl">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#b8962e' }} />
+                    <input
+            type="text"
+            placeholder={t("history.search_kundli_placeholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="kh-search w-full pl-10 pr-4 py-3 rounded-lg border border-[#d6c89a] bg-transparent text-gray-900 text-[14px] transition-all"
+            style={{ background: 'rgba(255,253,245,0.8)' }} />
+          
+                </div>
+
+                {/* ── Cards Grid ── */}
+                {filteredHistory.length > 0 ?
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {filteredHistory.map((item, idx) =>
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            onClick={() => handleSelect(item)}
+            className="kh-card cursor-pointer rounded-xl border border-[#d6c89a] overflow-hidden transition-all duration-200"
+            style={{ background: '#fffdf5' }}>
+            
+                                {/* Card top strip */}
+                                <div
+              className="px-4 pt-4 pb-3 border-b border-[#e9ddb8]"
+              style={{ background: 'rgba(184,150,46,0.07)' }}>
+              
+                                    <div className="flex items-center gap-3">
+                                        {/* Avatar */}
+                                        <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-semibold text-white flex-shrink-0"
+                  style={{ background: '#b8962e' }}>
+                  
+                                            {(item?.input?.name || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-semibold text-gray-900 text-[15px] leading-tight truncate">
+                                                {item?.input?.name || t("history.unknown_kundali")}
+                                            </h3>
+                                            <p className="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style={{ color: '#b8962e' }}>
+{t("history.birth_profile")}
+                  </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card body */}
+                                <div className="px-4 py-3 space-y-2">
+                                    <div className="flex items-center gap-2 text-gray-500">
+                                        <Calendar className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#b8962e' }} />
+                                        <span className="text-[12px] font-medium">{item?.input?.date || t("history.no_date")}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-500">
+                                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#b8962e' }} />
+                                        <span className="text-[12px] font-medium truncate">{item?.input?.place || t("history.no_place")}</span>
+                                    </div>
+                                </div>
+
+                                {/* Card footer */}
+                                <div className="px-4 py-2.5 border-t border-[#e9ddb8] flex items-center justify-between">
+                                    <span className="kh-card-label text-[11px] font-semibold uppercase tracking-wider text-gray-400 transition-colors">
+{t("history.view_detail")}
+              </span>
+                                    <ChevronRight className="kh-card-arrow w-3.5 h-3.5 text-gray-300 transition-all" />
+                                </div>
+                            </motion.div>
+          )}
+                    </div> : (
+
+        /* ── Empty State ── */
+        <div
+          className="rounded-xl border border-dashed border-[#d6c89a] p-16 text-center"
+          style={{ background: 'rgba(184,150,46,0.03)' }}>
+          
+                        <div
+            className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-5 border border-[#d6c89a]"
+            style={{ background: 'rgba(184,150,46,0.08)' }}>
+            
+                            <History className="w-7 h-7 opacity-40" style={{ color: '#b8962e' }} />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            {searchQuery ? t("history.no_matching_records") : t("history.no_charts_yet")}
+                        </h3>
+                        <p className="text-gray-400 text-sm max-w-sm mx-auto mb-7 leading-relaxed">
+                            {searchQuery ?
+            t("history.no_results_matched_your_search") :
+            t("history.you_haven_t_generated_any_birt")}
+                        </p>
+                        {!searchQuery &&
+          <button
+            onClick={() => router.push('/kundli')}
+            className="px-6 py-3 rounded-lg text-white text-[13px] font-semibold transition-all"
+            style={{ background: '#b8962e' }}>
+{t("history.generate_first_kundali")}
+
+          </button>
+          }
+                    </div>)
+        }
+            </div>
+        </div>);
+
+}

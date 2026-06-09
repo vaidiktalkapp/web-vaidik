@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --breakpoint-xs: 23.75rem; /* 380px */
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Geoapify Autocomplete Custom Styling for VaidikTalk */
+.geoapify-autocomplete-input {
+  width: 100% !important;
+  padding: 0.625rem 1rem 0.625rem 2.5rem !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 900 !important;
+  color: #111827 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.geoapify-autocomplete-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.geoapify-autocomplete-items {
+  border-radius: 0.75rem !important;
+  border: 1px solid #fed7aa !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+  font-family: inherit !important;
+  z-index: 100 !important;
+  background-color: white !important;
+}
+
+.geoapify-autocomplete-item {
+  padding: 10px 15px !important;
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+}
+
+.geoapify-autocomplete-item:hover, .geoapify-autocomplete-item.active {
+  background-color: #fff7ed !important;
+  color: #ea580c !important;
+}
+
+/* Rich Text Content Styling (for Quill HTML) */
+.rich-content p {
+  margin-bottom: 1rem;
+}
+
+.rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rich-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rich-content li {
+  margin-bottom: 0.25rem;
+}
+
+.rich-content strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.rich-content h1, .rich-content h2, .rich-content h3 {
+  font-family: inherit;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.rich-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+}

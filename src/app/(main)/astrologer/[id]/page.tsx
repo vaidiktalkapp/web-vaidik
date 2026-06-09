@@ -171,11 +171,11 @@ export default function AstrologerProfilePage() {
       });
 
       if (response.data.success) {
-        const newReviews = response.data.data.reviews || [];
+        const newReviews = response.data.reviews || response.data.data?.reviews || [];
         if (newReviews.length > 0) {
           setReviewsList((prev) => [...prev, ...newReviews]);
           setReviewPage(nextPage);
-          setHasMoreReviews(response.data.data.pagination?.hasNextPage || false);
+          setHasMoreReviews(response.data.pagination?.hasNextPage || response.data.data?.pagination?.hasNextPage || false);
         } else {
           setHasMoreReviews(false);
         }

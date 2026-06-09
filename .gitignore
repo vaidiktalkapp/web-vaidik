@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Custom test and temporary scripts
+build_output.log
+build_output.txt
+dom.html
+fix-translations.js
+find*.py
+*.pyc
+__pycache__/

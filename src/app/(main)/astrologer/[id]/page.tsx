@@ -167,10 +167,10 @@ export default function AstrologerProfilePage() {
       setLoadingReviews(true);
       const nextPage = reviewPage + 1;
       const response = await apiClient.get(`/astrologers/${id}/reviews`, {
-        params: { page: nextPage, limit: 10 }
+        params: { page: nextPage, limit: 5 }
       });
 
-      if (response.data.success) {
+      if (response.data.success || response.data.reviews) {
         const newReviews = response.data.reviews || response.data.data?.reviews || [];
         if (newReviews.length > 0) {
           setReviewsList((prev) => [...prev, ...newReviews]);
@@ -506,7 +506,7 @@ export default function AstrologerProfilePage() {
 
           {/* OPTIMIZED: Review List - More compact */}
           {reviewsList.length > 0 ?
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {reviewsList.map((review, index) =>
             <div key={review.reviewId || index} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
                   <div className="flex items-start justify-between gap-3">
@@ -559,7 +559,7 @@ export default function AstrologerProfilePage() {
                 </div>
             )}
 
-              {hasMoreReviews &&
+              {hasMoreReviews ? (
             <div className="pt-2 text-center">
                   <button
                 onClick={loadMoreReviews}
@@ -569,7 +569,20 @@ export default function AstrologerProfilePage() {
                     {loadingReviews ? 'Loading...' : 'Show More Reviews'}
                   </button>
                 </div>
-            }
+            ) : reviewsList.length > 5 ? (
+            <div className="pt-2 text-center">
+                  <button
+                onClick={() => {
+                  setReviewsList(reviewsList.slice(0, 5));
+                  setReviewPage(1);
+                  setHasMoreReviews(true);
+                }}
+                className="text-xs font-semibold text-yellow-600 hover:text-yellow-700 px-4 py-2 hover:bg-yellow-50 rounded-lg transition-colors">
+                
+                    Show Less Reviews
+                  </button>
+                </div>
+            ) : null}
             </div> :
 
           <div className="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-gray-100 rounded-lg bg-gray-50/30">

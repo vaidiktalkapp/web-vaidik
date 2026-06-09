@@ -373,7 +373,7 @@ const AiAstrologerProfilePage = ({ params }: PageProps) => {
                                         )}
 
                                         {/* Review List */}
-                                        <div className="space-y-4">
+                                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                                             {reviews.slice(0, reviewLimit).map((review, idx) => (
                                                 <motion.div 
                                                     key={review.reviewId || idx}
@@ -415,14 +415,23 @@ const AiAstrologerProfilePage = ({ params }: PageProps) => {
                                             ))}
                                         </div>
 
-                                        {reviewLimit < reviews.length && (
+                                        {reviews.length > 3 && (
                                             <div className="mt-8 text-center">
-                                                <button 
-                                                    onClick={() => setReviewLimit(reviews.length)}
-                                                    className="text-sm font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-6 py-2.5 rounded-full transition-all border border-orange-100 active:scale-95"
-                                                >
-                                                    Show More Reviews ({reviews.length - reviewLimit})
-                                                </button>
+                                                {reviewLimit < reviews.length ? (
+                                                    <button 
+                                                        onClick={() => setReviewLimit(reviews.length)}
+                                                        className="text-sm font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-6 py-2.5 rounded-full transition-all border border-orange-100 active:scale-95"
+                                                    >
+                                                        Show More Reviews ({reviews.length - reviewLimit})
+                                                    </button>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => setReviewLimit(3)}
+                                                        className="text-sm font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-6 py-2.5 rounded-full transition-all border border-orange-100 active:scale-95"
+                                                    >
+                                                        Show Less Reviews
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </>

@@ -816,7 +816,7 @@ function CallContent() {
   }
 
   // ========== AUDIO CALL RENDER ==========
-  if (callType === 'audio' && !showContinueModal) {
+  if (callType === 'audio') {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-blue-800 via-blue-700 to-slate-700 text-white relative overflow-hidden">
         {/* Animated Background */}
@@ -1133,100 +1133,6 @@ function CallContent() {
           />
 
         </>
-      )}
-      
-      {showContinueModal && (
-        <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-6 text-center">
-          <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mb-6">
-            <PhoneOff className="w-10 h-10 text-orange-500" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Call Ended</h1>
-          <p className="text-gray-400 mb-8 max-w-xs">Your consultation with {astrologerName} has finished.</p>
-          
-          <button 
-            onClick={() => router.push('/ai-chat-history')}
-            className="px-8 py-3 bg-orange-600 hover:bg-orange-700 rounded-full font-bold transition-all shadow-lg shadow-orange-600/20"
-          >
-            Go to History
-          </button>
-
-          <PostSessionModal
-            isOpen={showContinueModal}
-            onClose={() => {
-              setShowContinueModal(false);
-              if (astrologerId) {
-                router.replace(`/ai-astrologer/${astrologerId}`);
-              } else {
-                router.replace('/ai-chat-history');
-              }
-            }}
-            onGoHome={() => {
-              setShowContinueModal(false);
-              router.replace('/ai-astrologer-chat');
-            }}
-            astrologer={{ _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } }}
-            type="call"
-            isProcessing={isCallProcessing}
-            onSubmitRating={handleSubmitRating}
-            onContinue={async () => {
-              try {
-                if (orderId?.startsWith('AI-VC-')) {
-                  // AI Voice Call Continuation
-                  const storedIntake = localStorage.getItem(`ai-chat-intake-${orderId}`);
-                  let intakeData = null;
-                  if (storedIntake) {
-                    try {
-                      intakeData = JSON.parse(storedIntake);
-                    } catch (e) {
-                      console.error('Failed to parse stored intake', e);
-                    }
-                  }
-
-                  const res = await aiAstrologerService.startAiVoiceCall(
-                    astrologerId,
-                    user?._id || '',
-                    'English',
-                    intakeData ? {
-                      name: intakeData.name,
-                      dateOfBirth: intakeData.date,
-                      timeOfBirth: intakeData.time,
-                      placeOfBirth: intakeData.place,
-                      query: intakeData.query || ''
-                    } : undefined
-                  );
-
-                  if (res.success && res.sessionId) {
-                    if (intakeData) {
-                      localStorage.setItem(`ai-chat-intake-${res.sessionId}`, JSON.stringify(intakeData));
-                    }
-                    console.log('🔄 [Call] Redirecting to new AI session:', res.sessionId);
-                    const encodedImage = encodeURIComponent(astrologerImage || '');
-                    
-                    // Cleanup current session before moving to next
-                    cleanup();
-
-                    router.push(`/call/${res.sessionId}?type=audio&name=${encodeURIComponent(astrologerName)}&rate=${callRate}&astrologerId=${astrologerId}&orderId=${res.orderId || ''}&image=${encodedImage}`);
-                    setShowContinueModal(false);
-                  } else {
-                    toast.error(res.message || 'Failed to initiate call');
-                  }
-                } else {
-                  // Standard Call Continuation
-                  const res = await continueCall(sessionId, { _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } } as any, callType);
-                  if (res.success) {
-                    setShowContinueModal(false);
-                    cleanup();
-                    // Trigger re-setup
-                    router.replace(`${window.location.pathname}?${searchParams.toString()}&t=${Date.now()}`);
-                  }
-                }
-              } catch (error: any) {
-                console.error('Error continuing call:', error);
-                toast.error('Failed to continue call');
-              }
-            }}
-          />
-        </div>
       )}
     </div>
   );

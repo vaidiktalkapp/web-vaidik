@@ -282,6 +282,12 @@ export const RealTimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (data.agoraUid) queryParams.uid = data.agoraUid.toString();
 
           const query = new URLSearchParams(queryParams).toString();
+          
+          if (pathname && pathname.startsWith(`/call/${currentPending.sessionId}`)) {
+             console.log('🚀 [Call] Already on call page. Letting page.tsx handle call_credentials directly.');
+             return;
+          }
+          
           console.log('🚀 [Call] Redirecting to:', `/call/${currentPending.sessionId}?${query}`);
           router.push(`/call/${currentPending.sessionId}?${query}`);
           return;
@@ -383,17 +389,26 @@ export const RealTimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setCallWaitingVisible(false);
           setPendingCallSession(null);
           toast.error(payload.message || 'Astrologer rejected your call request.');
+          if (pathname && pathname.startsWith('/call/')) {
+            router.push('/orders');
+          }
         });
 
         callService.on('call_cancelled', () => {
           setCallWaitingVisible(false);
           setPendingCallSession(null);
+          if (pathname && pathname.startsWith('/call/')) {
+            router.push('/orders');
+          }
         });
 
         callService.on('call_timeout', () => {
           setCallWaitingVisible(false);
           setPendingCallSession(null);
           toast.error('Astrologer did not respond.');
+          if (pathname && pathname.startsWith('/call/')) {
+            router.push('/orders');
+          }
         });
 
         callService.on('incoming_call', (payload: any) => {
@@ -543,7 +558,8 @@ export const RealTimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         };
 
         setPendingCallSession(newCallSession);
-        setCallWaitingVisible(true);
+        // Navigate immediately so the user sees the calling screen
+        setCallWaitingVisible(false);
 
         if (user?._id) {
           const token = localStorage.getItem('accessToken');
@@ -552,6 +568,17 @@ export const RealTimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             callService.joinSession(data.sessionId, user._id, 'user');
           }
         }
+
+        const queryParams: Record<string, string> = {
+          type: callType,
+          name: encodeURIComponent(astrologer.name),
+          rate: callRate.toString(),
+          astrologerId: astrologer._id || astrologer.id!,
+          orderId: data.orderId,
+          image: encodeURIComponent(astrologer.image || astrologer.profileImage || astrologer.profilePicture || '')
+        };
+        const query = new URLSearchParams(queryParams).toString();
+        router.push(`/call/${data.sessionId}?${query}`);
 
         return { success: true, data };
       } else {

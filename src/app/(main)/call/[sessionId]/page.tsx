@@ -683,22 +683,7 @@ function CallContent() {
                 }
               }}
             />
-            {!showContinueModal && (aiProvider as any) === 'agora' && (
-              <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/80 backdrop-blur-md">
-                <ContinueChatOfferCard
-                  astrologer={{ _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } }}
-                  type="call"
-                  onContinue={async () => {
-                    const res = await continueCall(sessionId, { _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } } as any, callType);
-                    if (res.success) {
-                      setShowContinueModal(false);
-                      // Trigger re-setup
-                      router.replace(`${window.location.pathname}?${searchParams.toString()}&t=${Date.now()}`);
-                    }
-                  }}
-                />
-              </div>
-            )}
+
           </>
         )}
       </>
@@ -955,25 +940,7 @@ function CallContent() {
             }}
           />
         )}
-        {!showContinueModal && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/80 backdrop-blur-md">
-            {/* Only show for human astrologers */}
-            {(aiProvider as any) === 'agora' && (
-              <ContinueChatOfferCard
-                astrologer={{ _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } }}
-                type="call"
-                onContinue={async () => {
-                  const res = await continueCall(sessionId, { _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } } as any, callType);
-                  if (res.success) {
-                    setShowContinueModal(false);
-                    // Trigger re-setup
-                    router.replace(`${window.location.pathname}?${searchParams.toString()}&t=${Date.now()}`);
-                  }
-                }}
-              />
-            )}
-          </div>
-        )}
+
       </div>
     );
   }
@@ -1164,23 +1131,7 @@ function CallContent() {
               }
             }}
           />
-          {/* Only show for human astrologers */}
-          {!showContinueModal && (aiProvider as any) === 'agora' && (
-            <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/80 backdrop-blur-md">
-              <ContinueChatOfferCard
-                astrologer={{ _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } }}
-                type="call"
-                onContinue={async () => {
-                  const res = await continueCall(sessionId, { _id: astrologerId, name: astrologerName, profileImage: astrologerImage, pricing: { call: callRate } } as any, callType);
-                  if (res.success) {
-                    setShowContinueModal(false);
-                    // Trigger re-setup
-                    router.replace(`${window.location.pathname}?${searchParams.toString()}&t=${Date.now()}`);
-                  }
-                }}
-              />
-            </div>
-          )}
+
         </>
       )}
       

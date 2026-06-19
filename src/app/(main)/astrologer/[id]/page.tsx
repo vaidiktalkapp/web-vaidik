@@ -201,7 +201,10 @@ export default function AstrologerProfilePage() {
     return Math.max(1, diffMinutes);
   }, [astrologer]);
 
-  const isBusy = astrologer?.availability.isOnline && (!astrologer?.availability.isAvailable || waitTime > 0);
+  const isBusy = astrologer?.realStatus === 'busy';
+  const isLive = astrologer?.realStatus === 'live';
+  const isOnline = astrologer?.realStatus === 'online' || isLive || isBusy;
+  const isAvailable = astrologer?.realStatus === 'online';
 
   const handleConnect = async (mode: 'chat' | 'call') => {
     if (!isAuthenticated) {
@@ -211,7 +214,7 @@ export default function AstrologerProfilePage() {
       return;
     }
 
-    if (!astrologer || !astrologer.availability.isOnline) {
+    if (!astrologer || !isOnline) {
       alert('Astrologer is currently offline');
       return;
     }
@@ -288,8 +291,11 @@ export default function AstrologerProfilePage() {
                     alt={astrologer.name}
                     className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-3 border-yellow-50 shadow-sm" />
                   
-                  <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-3 border-white shadow-sm ${astrologer.availability?.isOnline ? 'bg-green-500' : 'bg-gray-400'}`
-                  } />
+                  <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-3 border-white shadow-sm ${
+                    isLive ? 'bg-red-500 animate-pulse' : 
+                    isBusy ? 'bg-orange-500' : 
+                    isOnline ? 'bg-green-500' : 'bg-gray-400'
+                  }`} />
                 </div>
               </div>
 
@@ -610,8 +616,8 @@ export default function AstrologerProfilePage() {
             {/* Chat Button */}
             <button
               onClick={() => handleConnect('chat')}
-              disabled={!astrologer.availability.isOnline || isChatProcessing || isBusy}
-              className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-lg border-2 transition-all ${astrologer.availability.isOnline && !isBusy ?
+              disabled={!isAvailable || isChatProcessing}
+              className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-lg border-2 transition-all ${isAvailable ?
               'border-green-500 bg-green-50 hover:bg-green-100 active:bg-green-200' :
               'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed'}`
               }>
@@ -620,14 +626,14 @@ export default function AstrologerProfilePage() {
                 {isChatProcessing ?
                 <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" /> :
 
-                <MessageCircle className={`w-4 h-4 ${astrologer.availability.isOnline && !isBusy ? 'text-green-600' : 'text-gray-400'}`} />
+                <MessageCircle className={`w-4 h-4 ${isAvailable ? 'text-green-600' : 'text-gray-400'}`} />
                 }
 
-                <span className={`font-bold text-sm ${astrologer.availability.isOnline && !isBusy ? 'text-green-700' : 'text-gray-500'}`}>
+                <span className={`font-bold text-sm ${isAvailable ? 'text-green-700' : 'text-gray-500'}`}>
                   {isChatProcessing ? 'Starting...' : isBusy ? `Busy ${waitTime}m` : 'Chat'}
                 </span>
               </div>
-              <span className={`text-[11px] mt-0.5 ${astrologer.availability.isOnline && !isBusy ? 'text-green-600 font-medium' : 'text-gray-400'}`}>
+              <span className={`text-[11px] mt-0.5 ${isAvailable ? 'text-green-600 font-medium' : 'text-gray-400'}`}>
                 ₹{astrologer.pricing.chat}{t("_id_._min")}
               </span>
             </button>
@@ -635,8 +641,8 @@ export default function AstrologerProfilePage() {
             {/* Call Button */}
             <button
               onClick={() => handleConnect('call')}
-              disabled={!astrologer.availability.isOnline || isCallProcessing || isBusy}
-              className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-lg border-2 transition-all ${astrologer.availability.isOnline && !isBusy ?
+              disabled={!isAvailable || isCallProcessing}
+              className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-lg border-2 transition-all ${isAvailable ?
               'border-blue-500 bg-blue-50 hover:bg-blue-100 active:bg-blue-200' :
               'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed'}`
               }>
@@ -645,13 +651,13 @@ export default function AstrologerProfilePage() {
                 {isCallProcessing ?
                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> :
 
-                <Phone className={`w-4 h-4 ${astrologer.availability.isOnline && !isBusy ? 'text-blue-600' : 'text-gray-400'}`} />
+                <Phone className={`w-4 h-4 ${isAvailable ? 'text-blue-600' : 'text-gray-400'}`} />
                 }
-                <span className={`font-bold text-sm ${astrologer.availability.isOnline && !isBusy ? 'text-blue-700' : 'text-gray-500'}`}>
+                <span className={`font-bold text-sm ${isAvailable ? 'text-blue-700' : 'text-gray-500'}`}>
                   {isCallProcessing ? 'Calling...' : isBusy ? `Busy ${waitTime}m` : 'Call'}
                 </span>
               </div>
-              <span className={`text-[11px] mt-0.5 ${astrologer.availability.isOnline && !isBusy ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+              <span className={`text-[11px] mt-0.5 ${isAvailable ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
                 ₹{astrologer.pricing.call}{t("_id_._min")}
               </span>
             </button>

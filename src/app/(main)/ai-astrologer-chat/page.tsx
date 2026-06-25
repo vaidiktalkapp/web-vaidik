@@ -538,9 +538,9 @@ const AstrologerListing = () => {
                       <span>⭐</span>
                       <span>{astrologer.rating?.toFixed(1) || '4.5'}</span>
                     </div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">
+                    {/* <div className="text-[10px] text-gray-400 mt-0.5">
                       {astrologer.totalChats || 0} orders
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

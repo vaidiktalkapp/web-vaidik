@@ -56,7 +56,6 @@ export default function AstrologerProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
-  const [isBioLong, setIsBioLong] = useState(false);
   const [reviewsList, setReviewsList] = useState<Review[]>([]);
   const [reviewPage, setReviewPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(true);
@@ -88,8 +87,13 @@ export default function AstrologerProfilePage() {
           setReviewsList(response.data.reviews);
         }
 
+        if (response.data.reviewsPagination) {
+          setHasMoreReviews(response.data.reviewsPagination.hasNextPage);
+        } else {
+          setHasMoreReviews(false);
+        }
+
         const bio = data.description || data.about || "";
-        if (bio.length > 150) setIsBioLong(true);
       }
     } catch (error) {
       console.error('Failed to load astrologer:', error);
@@ -266,8 +270,9 @@ export default function AstrologerProfilePage() {
     return <div className="text-center py-12 text-gray-700">{t("_id_.astrologer_not_found")}</div>;
   }
 
-  const bioText = astrologer.bio || "Expert astrologer with deep knowledge.";
-  const displayedBio = isBioExpanded ? bioText : bioText.slice(0, 150) + (isBioLong ? "..." : "");
+  const bioText = astrologer.bio || (astrologer as any).about || (astrologer as any).description || "Expert astrologer with deep knowledge.";
+  const actualIsBioLong = bioText.length > 150;
+  const displayedBio = isBioExpanded ? bioText : bioText.slice(0, 150) + (actualIsBioLong ? "..." : "");
 
   const ratingBreakdown = astrologer.ratings?.breakdown || {};
   const totalRatingCount = astrologer.ratings?.total || 0;
@@ -349,8 +354,8 @@ export default function AstrologerProfilePage() {
                       <div className="flex items-center text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
                         <Star className="w-3.5 h-3.5 text-yellow-500 fill-current mr-1" />
                         <span className="font-bold text-gray-900">{astrologer.ratings.average.toFixed(1)}</span>
-                        <span className="mx-1 text-gray-300">•</span>
-                        <span className="text-gray-600">{formatCount(astrologer.stats.totalOrders)}</span>
+                        {/* <span className="mx-1 text-gray-300">•</span>
+                        <span className="text-gray-600">{formatCount(astrologer.stats.totalOrders)}</span> */}
                       </div>
                       <div className="flex items-center text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
                         <Languages className="w-3.5 h-3.5 mr-1" />
@@ -423,7 +428,7 @@ export default function AstrologerProfilePage() {
             <p className="text-gray-700 leading-relaxed text-sm">
               {displayedBio}
             </p>
-            {isBioLong &&
+            {actualIsBioLong &&
             <button
               onClick={() => setIsBioExpanded(!isBioExpanded)}
               className="mt-2 text-yellow-600 font-semibold flex items-center hover:text-yellow-700 text-xs">
@@ -531,9 +536,6 @@ export default function AstrologerProfilePage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <p className="text-sm font-semibold text-gray-900 truncate">{review.userName || 'Anonymous'}</p>
-                          {review.isTestData &&
-                      <span className="bg-yellow-100 text-yellow-800 text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0">{t("_id_.test")}</span>
-                      }
                           {review.serviceType &&
                       <span className="text-[11px] text-gray-400 truncate">• {review.serviceType}</span>
                       }

@@ -128,6 +128,25 @@ const LalKitabLanding = ({ onStart }: LalKitabLandingProps) => {
             <span>{t("lal_kitab.remedial")}</span>
           </div>
         </motion.div>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 flex justify-center"
+        >
+          <motion.button
+            onClick={onStart}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg font-semibold text-[15px] text-white tracking-wide transition-all"
+            style={{ background: '#b8962e' }}
+          >
+            <Sparkles className="w-4 h-4" />
+            {t("lal_kitab.generate_your_lal_kitab") || "Generate Your Lal Kitab"}
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* ── Content Sections ── */}

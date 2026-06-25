@@ -116,9 +116,9 @@ const AstrologerCard: React.FC<Props> = ({ astrologer, mode }) => {
             <span>⭐</span>
             <span className="font-bold">{astrologer.ratings?.average?.toFixed(1) || '5.0'}</span>
           </div>
-          <div className="text-[10px] text-gray-400">
+          {/* <div className="text-[10px] text-gray-400">
             {astrologer.stats?.totalOrders || 0} orders
-          </div>
+          </div> */}
         </div>
       </div>
 

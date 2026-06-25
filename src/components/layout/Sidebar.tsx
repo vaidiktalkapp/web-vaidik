@@ -316,13 +316,13 @@ export default function Sidebar({ isOpen, onClose, isPersistent = false }: Sideb
                         `}>
                           {item.icon}
                         </span>
-                        <span className={`text-[15px] font-bold tracking-tight transition-all duration-300
+                        <span className={`text-[15px] font-bold tracking-tight text-left transition-all duration-300
                           ${isSubActive ? 'pl-1 text-yellow-300' : 'group-hover:pl-1 text-white'}
                         `}>
                           {item.title}
                         </span>
                       </div>
-                      {isSubActive && <CheckCircle2 size={18} className="text-yellow-400 fill-yellow-400" strokeWidth={2.5} />}
+                      {isSubActive && <CheckCircle2 size={10} className="text-yellow-400 fill-yellow-400" strokeWidth={2.5} />}
                       <ChevronDown
                         size={18}
                         className={`transition-all duration-300 ml-auto
@@ -348,13 +348,13 @@ export default function Sidebar({ isOpen, onClose, isPersistent = false }: Sideb
                         `}>
                           {item.icon}
                         </span>
-                        <span className={`text-[15px] font-bold tracking-tight transition-all duration-300
+                        <span className={`text-[15px] font-bold tracking-tight text-left transition-all duration-300
                           ${isActive ? 'pl-1 text-yellow-300' : 'group-hover:pl-1 text-white'}
                         `}>
                           {item.title}
                         </span>
                       </div>
-                      {isActive && <CheckCircle2 size={18} className="text-yellow-400 fill-yellow-400" strokeWidth={2.5} />}
+                      {isActive && <CheckCircle2 size={10} className="text-yellow-400 fill-yellow-400" strokeWidth={2.5} />}
                     </Link>
                   )}
 

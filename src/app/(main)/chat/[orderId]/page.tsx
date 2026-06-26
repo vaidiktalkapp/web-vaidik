@@ -664,7 +664,7 @@ export default function ChatScreen() {
         sessionId: activeSession.sessionId,
         senderId: user._id,
         senderModel: 'User',
-        content: '',
+        content: '[Image]',
         type: 'image',
         fileUrl: res.url,
         status: 'sent',

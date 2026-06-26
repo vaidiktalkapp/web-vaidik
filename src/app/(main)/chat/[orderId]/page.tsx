@@ -803,7 +803,7 @@ export default function ChatScreen() {
       return (
         <div className="space-y-1">
           <ImageViewer url={mediaUrl} />
-          {msg.content && <p className="text-sm mt-1">{msg.content}</p>}
+          {msg.content && msg.content !== '[Image]' && <p className="text-sm mt-1">{msg.content}</p>}
         </div>);
 
     }

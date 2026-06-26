@@ -170,7 +170,8 @@ class ChatService {
     senderId: string, 
     receiverId: string | undefined, 
     orderId: string, 
-    type: string = 'text'
+    type: string = 'text',
+    extraData?: { fileUrl?: string }
   ) {
     if (!this.socket || !this.isConnected()) {
       console.warn('⚠️ [Chat] Socket not connected, attempting to reconnect...');
@@ -191,6 +192,7 @@ class ChatService {
       orderId,
       type,
       content,
+      fileUrl: extraData?.fileUrl,
       message: content, 
       sentAt: new Date().toISOString(),
     };

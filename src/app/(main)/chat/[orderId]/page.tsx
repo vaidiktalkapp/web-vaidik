@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import chatService from '@/lib/chatService';
-import { Play, Pause, Download, ThumbsUp, ThumbsDown, Copy, Share2, Volume2, Check, Clock } from 'lucide-react';
+import { Play, Pause, Download, ThumbsUp, ThumbsDown, Copy, Share2, Volume2, Check, Clock, ImagePlus, Loader2 } from 'lucide-react';
 import LowBalanceBanner from '@/components/chat/LowBalanceBanner';
 import QuickRechargeModal from '@/components/chat/QuickRechargeModal';
 import PostSessionModal from '@/components/chat/PostSessionModal';
@@ -13,6 +13,7 @@ import ContinueChatOfferCard from '@/components/chat/ContinueChatOfferCard';
 import { toast } from 'react-hot-toast';
 import { useRealTime } from '@/context/RealTimeContext';
 import { orderService } from '@/lib/orderService';
+import { uploadService } from '@/lib/upload.web';
 
 // --- Interfaces ---
 interface Message {
@@ -268,8 +269,10 @@ export default function ChatScreen() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({});
+  const [isUploading, setIsUploading] = useState(false);
 
   // --- Refs ---
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const activeSessionRef = useRef<ActiveSession | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -592,6 +595,56 @@ export default function ChatScreen() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?._id || !astrologerInfo?._id || !activeSession) return;
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image size must be less than 5MB');
+      e.target.value = '';
+      return;
+    }
+
+    // Reset input so the same file can be selected again if needed
+    e.target.value = '';
+
+    try {
+      setIsUploading(true);
+      const res = await uploadService.uploadImage(file);
+      
+      const tempId = `temp-img-${Date.now()}`;
+      const tempMsg: Message = {
+        _id: tempId,
+        orderId,
+        sessionId: activeSession.sessionId,
+        senderId: user._id,
+        senderModel: 'User',
+        content: '',
+        type: 'image',
+        fileUrl: res.url,
+        status: 'sent',
+        sentAt: new Date().toISOString()
+      };
+      
+      setMessages((prev) => [...prev, tempMsg]);
+
+      chatService.sendMessage(
+        activeSession.sessionId,
+        '', // No text content for image by default
+        user._id,
+        astrologerInfo._id,
+        orderId,
+        'image',
+        { fileUrl: res.url }
+      );
+    } catch (error) {
+      toast.error('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // --- Helpers ---
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60).toString().padStart(2, '0');
@@ -896,6 +949,20 @@ export default function ChatScreen() {
         {/* Input Area */}
         {isActiveMode ?
           <div className="bg-white p-3 flex gap-2 border-t shrink-0 items-center">
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={handleImageUpload} 
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-[#5A2CCF] hover:bg-gray-100 transition-colors disabled:opacity-50"
+            >
+              {isUploading ? <Loader2 className="w-5 h-5 animate-spin text-[#5A2CCF]" /> : <ImagePlus className="w-5 h-5" />}
+            </button>
             <input
               value={inputText}
               onChange={(e) => handleTyping(e.target.value)}

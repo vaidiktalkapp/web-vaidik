@@ -333,10 +333,10 @@ export default function ChatScreen() {
               const timer = await chatService.getTimerStatus(targetSession.sessionId);
               if (timer.success) setElapsedTime(timer.data.remainingSeconds ?? 300);
 
-              await connectSocket(targetSession.sessionId);
+              await connectSocket(targetSession.sessionId, targetSession.status);
             } else if (['pending', 'waiting', 'initiated'].includes(targetSession.status)) {
               setIsActiveMode(false);
-              await connectSocket(targetSession.sessionId);
+              await connectSocket(targetSession.sessionId, targetSession.status);
             } else {
               setIsActiveMode(false);
               setElapsedTime(0);
@@ -399,7 +399,7 @@ export default function ChatScreen() {
   }, [elapsedTime, isActiveMode, activeSession, loading]);
 
   // --- 2. Connections ---
-  const connectSocket = async (sessionId: string) => {
+  const connectSocket = async (sessionId: string, currentStatus?: string) => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
@@ -407,7 +407,8 @@ export default function ChatScreen() {
     setupSocketListeners();
     chatService.joinSession(sessionId, user!._id);
 
-    if (sessionStatus === 'waiting' || sessionStatus === 'initiated') {
+    const statusToCheck = currentStatus || sessionStatus;
+    if (statusToCheck === 'waiting' || statusToCheck === 'initiated') {
       chatService.startChat(sessionId, user!._id);
     }
   };
@@ -513,6 +514,15 @@ export default function ChatScreen() {
     // Chat Accepted (Restart/Continue)
     chatService.on('chat_accepted', (data: any) => {
       console.log('✅ Chat Accepted (Local):', data);
+      
+      // If the accepted chat is for a DIFFERENT order (e.g., user clicked continue and got a new orderId),
+      // navigate to the new chat screen immediately to prevent state conflicts on the old screen.
+      if (data.orderId && data.orderId !== orderId) {
+        console.log('🔄 Redirecting to new chat session:', data.orderId);
+        router.push(`/chat/${data.orderId}`);
+        return;
+      }
+
       if (data.orderId === orderId || data.sessionId) {
         const newSession: ActiveSession = {
           sessionId: data.sessionId,
@@ -523,6 +533,12 @@ export default function ChatScreen() {
         setActiveSession(newSession);
         setSessionStatus('active');
         setShowContinueModal(false);
+        
+        // IMPORTANT: Tell the backend we are joining and starting the chat
+        if (user?._id) {
+          chatService.joinSession(data.sessionId, user._id);
+          chatService.startChat(data.sessionId, user._id);
+        }
       }
     });
   };

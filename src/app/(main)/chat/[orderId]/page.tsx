@@ -319,9 +319,18 @@ export default function ChatScreen() {
           const hist = summary.data.sessionHistory || [];
           const lastSession = hist.length > 0 ? hist[hist.length - 1] : null;
 
-          const targetSession = currentId && summary.data.currentSessionType === 'chat' ?
-            { sessionId: currentId, status: 'active', type: 'chat', startedAt: new Date().toISOString() } :
-            lastSession ? { ...lastSession, type: 'chat' } : null;
+          let targetSession = null;
+          if (currentId && summary.data.currentSessionType === 'chat') {
+            const activeSessionDetails = hist.find((s: any) => s.sessionId === currentId);
+            targetSession = { 
+              sessionId: currentId, 
+              status: activeSessionDetails ? activeSessionDetails.status : 'active', 
+              type: 'chat', 
+              startedAt: new Date().toISOString() 
+            };
+          } else if (lastSession) {
+            targetSession = { ...lastSession, type: 'chat' };
+          }
 
           if (targetSession) {
             setActiveSession(targetSession);
@@ -615,6 +624,12 @@ export default function ChatScreen() {
     const file = e.target.files?.[0];
     if (!file || !user?._id || !astrologerInfo?._id || !activeSession) return;
 
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
+      e.target.value = '';
+      return;
+    }
+
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
     if (file.size > MAX_FILE_SIZE) {
       toast.error('Image size must be less than 5MB');
@@ -647,7 +662,7 @@ export default function ChatScreen() {
 
       chatService.sendMessage(
         activeSession.sessionId,
-        '', // No text content for image by default
+        '[Image]', // Backend requires content to not be empty
         user._id,
         astrologerInfo._id,
         orderId,

@@ -290,11 +290,11 @@ class ChatService {
       throw new Error(response.data.message || 'Failed to initiate chat');
     } catch (error: any) {
       console.error('❌ [Chat] Initiate chat error:', error);
-      const backendError = error.response?.data?.message;
+      const backendError = error.response?.data?.message || error.response?.data?.error;
       if (backendError) {
         throw new Error(Array.isArray(backendError) ? backendError.join(', ') : backendError);
       }
-      throw error;
+      throw new Error('Failed to initiate chat. Please try again.');
     }
   }
 
@@ -326,11 +326,11 @@ class ChatService {
       throw new Error(response.data.message || 'Failed to continue chat');
     } catch (error: any) {
       console.error('❌ [Chat] Continue chat error:', error);
-      const backendError = error.response?.data?.message;
+      const backendError = error.response?.data?.message || error.response?.data?.error;
       if (backendError) {
         throw new Error(Array.isArray(backendError) ? backendError.join(', ') : backendError);
       }
-      throw error;
+      throw new Error('Failed to continue chat. Please try again.');
     }
   }
 

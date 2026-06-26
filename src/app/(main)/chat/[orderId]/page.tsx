@@ -342,7 +342,21 @@ export default function ChatScreen() {
               if (timer.success) setElapsedTime(timer.data.remainingSeconds ?? 300);
 
               await connectSocket(targetSession.sessionId, targetSession.status);
-            } else if (['pending', 'waiting', 'initiated'].includes(targetSession.status)) {
+            } else if (targetSession.status === 'waiting') {
+              // Astrologer accepted, user joined page — emit start_chat
+              setIsActiveMode(false);
+              await connectSocket(targetSession.sessionId, targetSession.status);
+            } else if (targetSession.status === 'initiated') {
+              // Request still pending (astrologer hasn't accepted yet) — just connect socket
+              // DO NOT emit start_chat here; wait for chat_accepted event
+              setIsActiveMode(false);
+              const token = localStorage.getItem('accessToken');
+              if (token) {
+                await chatService.connect(token);
+                setupSocketListeners();
+                chatService.joinSession(targetSession.sessionId, user!._id);
+              }
+            } else if (targetSession.status === 'pending') {
               setIsActiveMode(false);
               await connectSocket(targetSession.sessionId, targetSession.status);
             } else {

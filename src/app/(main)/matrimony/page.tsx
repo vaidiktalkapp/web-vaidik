@@ -179,7 +179,7 @@ export default function MatrimonyPage() {
               >
                 <div style={{ borderRadius: 28, overflow: 'hidden', border: '2px solid #e8dfc4', boxShadow: '0 24px 64px rgba(0,0,0,0.12)' }}>
                   <img
-                    src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=600"
+                    src="/hindu_wedding.png"
                     alt="Divine Union"
                     style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }}
                   />

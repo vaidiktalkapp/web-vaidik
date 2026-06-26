@@ -72,7 +72,7 @@ const LalKitabLanding = ({ onStart }: LalKitabLandingProps) => {
       `}</style>
 
       {/* ── Page Header ── */}
-      <div className="mb-12 text-center relative pt-12 pb-4">
+      <div className="mb-12 text-center relative pt-8 pb-4">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,_rgba(184,150,46,0.1)_0%,_transparent_70%)] pointer-events-none -z-10" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 opacity-[0.04] pointer-events-none -z-10 overflow-hidden">
           <div className="w-[500px] h-[500px] border-[40px] border-double border-[#b8962e] rounded-full animate-[spin_180s_linear_infinite]" />
@@ -144,7 +144,7 @@ const LalKitabLanding = ({ onStart }: LalKitabLandingProps) => {
             style={{ background: '#b8962e' }}
           >
             <Sparkles className="w-4 h-4" />
-            {t("lal_kitab.generate_your_lal_kitab") || "Generate Your Lal Kitab"}
+            {t("lal_kitab.generate_your_lal_kitab") === "lal_kitab.generate_your_lal_kitab" ? "Generate Your Lal Kitab" : t("lal_kitab.generate_your_lal_kitab")}
           </motion.button>
         </motion.div>
       </div>

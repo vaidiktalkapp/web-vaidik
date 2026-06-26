@@ -321,10 +321,9 @@ export default function ChatScreen() {
 
           let targetSession = null;
           if (currentId && summary.data.currentSessionType === 'chat') {
-            const activeSessionDetails = hist.find((s: any) => s.sessionId === currentId);
             targetSession = { 
               sessionId: currentId, 
-              status: activeSessionDetails ? activeSessionDetails.status : 'active', 
+              status: summary.data.currentSessionStatus || 'active', 
               type: 'chat', 
               startedAt: new Date().toISOString() 
             };

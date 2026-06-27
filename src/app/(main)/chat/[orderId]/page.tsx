@@ -680,7 +680,12 @@ export default function ChatScreen() {
         astrologerInfo._id,
         orderId,
         'image',
-        { fileUrl: res.url }
+        { 
+          fileUrl: res.url,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type
+        }
       );
     } catch (error) {
       toast.error('Failed to upload image. Please try again.');

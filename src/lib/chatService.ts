@@ -183,6 +183,8 @@ class ChatService {
         return;
     }
 
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
     const messageData = {
       sessionId,
       senderId,
@@ -198,6 +200,7 @@ class ChatService {
       mimeType: extraData?.mimeType,
       message: content, 
       sentAt: new Date().toISOString(),
+      tempId,
     };
 
     console.log('📤 [Chat] Sending message via socket:', messageData);
